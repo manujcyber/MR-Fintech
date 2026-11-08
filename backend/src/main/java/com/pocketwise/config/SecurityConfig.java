@@ -1,4 +1,3 @@
-```java
 package com.pocketwise.config;
 
 import org.springframework.context.annotation.Bean;
@@ -61,4 +60,4 @@ public class SecurityConfig {
                 .build();
     }
 }
-```
+
