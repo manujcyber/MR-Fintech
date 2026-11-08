@@ -1,6 +1,8 @@
+```java
 package com.pocketwise.config;
 
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,40 +15,50 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         return http
-                .cors(c -> c.configurationSource(req -> {
-                    CorsConfiguration x = new CorsConfiguration();
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
 
-                    x.setAllowedOrigins(List.of(
+                    config.setAllowedOrigins(List.of(
                             "http://localhost:5173",
                             "http://127.0.0.1:5173",
                             "https://mr-fintech-d54r.vercel.app"
                     ));
 
-                    x.setAllowedMethods(List.of(
-                            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+                    config.setAllowedMethods(List.of(
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE",
+                            "OPTIONS"
                     ));
 
-                    x.setAllowedHeaders(List.of("*"));
-                    x.setAllowCredentials(true);
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
 
-                    return x;
+                    return config;
                 }))
-                .csrf(c -> c.disable())
-                .authorizeHttpRequests(a -> a
+
+                .csrf(csrf -> csrf.disable())
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/error").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .formLogin(f -> f.disable())
-                .httpBasic(h -> h.disable())
+
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+
                 .build();
     }
 }
+```
