@@ -103,21 +103,44 @@ function DashboardApp({ auth, onLogout }) {
   const dailyAverage = dayOfMonth ? Math.round(totalSpent / dayOfMonth) : 0
   const health = overBudget ? 'Needs attention' : usedPct > (dayOfMonth / daysInMonth * 100 + 15) ? 'Watch spending' : 'On track'
 
-  async function addExpense(ev) {
-    ev.preventDefault()
-    const item = { ...form, amount: Number(form.amount), description: form.description.trim() }
-    if (!item.description || !item.amount || item.amount <= 0) return
-    try {
-      const saved = await request('/expenses', { method: 'POST', body: JSON.stringify(item) })
-      setExpenses(prev => [saved, ...prev])
-      setApiConnected(true)
-    } catch {
-      setExpenses(prev => [{ ...item, id: `local-${Date.now()}` }, ...prev])
-      setNotice('Saved in this browser session. Start the Spring Boot backend and MongoDB for persistent storage.')
-    }
-    setForm({ description: '', amount: '', category: 'Food', date: today })
-    setShowModal(false)
+async function addExpense(ev) {
+  ev.preventDefault()
+
+  const item = {
+    ...form,
+    amount: Number(form.amount),
+    description: form.description.trim() || 'Expense'
   }
+
+  if (!item.amount || item.amount <= 0) return
+
+  try {
+    const saved = await request('/expenses', {
+      method: 'POST',
+      body: JSON.stringify(item)
+    })
+
+    setExpenses(prev => [saved, ...prev])
+    setApiConnected(true)
+
+  } catch {
+    setExpenses(prev => [
+      { ...item, id: `local-${Date.now()}` },
+      ...prev
+    ])
+
+    setNotice('Saved in this browser session. Start the Spring Boot backend and MongoDB for persistent storage.')
+  }
+
+  setForm({
+    description: '',
+    amount: '',
+    category: 'Food',
+    date: today
+  })
+
+  setShowModal(false)
+}
 
   async function deleteExpense(id) {
     if (!window.confirm('Delete this expense? This action cannot be undone.')) return
